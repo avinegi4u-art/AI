@@ -30,17 +30,62 @@ Requires provider configuration later:
 
 ## Run locally
 
+First install dependencies:
+
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev]"
-uvicorn copresenter.app:app --reload
+./.cursor/setup.sh
+```
+
+Start the API:
+
+```bash
+./.cursor/run-api.sh
+```
+
+Or manually:
+
+```bash
+python3 -m uvicorn copresenter.app:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Open the API docs at:
 
 ```text
 http://127.0.0.1:8000/docs
+```
+
+### Common startup errors
+
+**`ModuleNotFoundError: No module named 'copresenter'`**
+
+Run setup first from the repo root:
+
+```bash
+./.cursor/setup.sh
+```
+
+**`Address already in use` / port 8000 busy**
+
+The API may already be running (especially in Cursor Cloud). Check:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+If that returns `{"status":"ok"}`, open `http://127.0.0.1:8000/docs` and use the existing server.
+
+Otherwise start on another port:
+
+```bash
+PORT=8001 ./.cursor/run-api.sh
+```
+
+**`No module named uvicorn'`**
+
+Install dependencies:
+
+```bash
+./.cursor/setup.sh
 ```
 
 ## Example flow

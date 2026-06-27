@@ -10,7 +10,8 @@ This repository includes a committed cloud agent environment in `.cursor/environ
 - Do not reinstall dependencies manually on every run unless `pyproject.toml` changed.
 - Run tests from the repository root with `python3 -m pytest`.
 - API docs are available at `http://127.0.0.1:8000/docs` once the server is running.
-- For manual local development with reload, run `python3 -m uvicorn copresenter.app:app --reload --host 0.0.0.0 --port 8000`.
+- Start the API manually with `./.cursor/run-api.sh` if it is not already running.
+- If port 8000 is busy, the server may already be up. Check `curl http://127.0.0.1:8000/health` before starting another instance.
 - Prefer module invocation (`python3 -m pytest`, `python3 -m uvicorn`) because user-local scripts may not be on `PATH`.
 
 If dependency installation fails after a `pyproject.toml` change, rerun:
