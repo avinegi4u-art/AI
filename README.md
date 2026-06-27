@@ -70,5 +70,26 @@ Default disclosure text:
 ## Tests
 
 ```bash
-pytest
+python3 -m pytest
+```
+
+## Cloud agent environment
+
+This repo includes a committed Cursor Cloud environment so agents can run tests without manual dependency setup.
+
+- `.cursor/environment.json` — cloud environment config
+- `.cursor/Dockerfile` — Python 3.12+ base image
+- `.cursor/setup.sh` — idempotent editable install of `pyproject.toml` dependencies
+- `AGENTS.md` — cloud-specific agent instructions
+
+After environment startup, agents should run:
+
+```bash
+python3 -m pytest
+```
+
+To refresh dependencies locally after changing `pyproject.toml`:
+
+```bash
+./.cursor/setup.sh
 ```
