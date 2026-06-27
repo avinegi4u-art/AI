@@ -88,6 +88,12 @@ After environment startup, agents should run:
 python3 -m pytest
 ```
 
+The cloud environment also auto-starts the FastAPI server on port `8000`. Open API docs at:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
 To refresh dependencies locally after changing `pyproject.toml`:
 
 ```bash
