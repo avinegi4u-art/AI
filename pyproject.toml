@@ -1,0 +1,29 @@
+[project]
+name = "ai-copresenter"
+version = "0.1.0"
+description = "A consent-first AI co-presenter prototype for document-grounded presentations and Q&A."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "openpyxl",
+    "pypdf",
+    "python-docx",
+    "python-multipart",
+    "python-pptx",
+    "uvicorn[standard]",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx",
+    "pytest",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
