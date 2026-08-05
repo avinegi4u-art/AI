@@ -37,6 +37,9 @@ class StringEnum(TypeDecorator[Any]):
 
     def __init__(self, enum_class: type[StrEnum], length: int = 32) -> None:
         self.enum_class = enum_class
+        # Kept as an attribute so migration rendering can read it without reaching into
+        # the underlying ``impl`` instance.
+        self.length = length
         super().__init__(length=length)
 
     def process_bind_param(self, value: Any, dialect: Dialect) -> str | None:

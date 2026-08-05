@@ -7,10 +7,26 @@ is identical, so it lives here. A service's ``env.py`` is a five-line call into
 
 from __future__ import annotations
 
+from typing import Any, Literal
+
 from alembic import context
 from sqlalchemy import MetaData, create_engine, pool, text
 
 from marsool_core.config import ServiceSettings
+from marsool_core.db.types import StringEnum
+
+
+def _render_item(type_: str, obj: Any, autogen_context: Any) -> str | Literal[False]:
+    """Render custom column types using plain SQLAlchemy equivalents.
+
+    :class:`StringEnum` needs its Python enum class at construction time, which a
+    migration file must not depend on — migrations have to keep working after the enum
+    moves or gains variants. At the database level it is just a ``VARCHAR``, so that is
+    what gets rendered.
+    """
+    if type_ == "type" and isinstance(obj, StringEnum):
+        return f"sa.String(length={obj.length})"
+    return False
 
 
 def _include_object(_object: object, name: str | None, type_: str, *_args: object) -> bool:
@@ -50,6 +66,7 @@ def run_migrations(
             version_table_schema=schema,
             compare_type=True,
             compare_server_default=True,
+            render_item=_render_item,
         )
         with context.begin_transaction():
             context.run_migrations()
@@ -70,6 +87,7 @@ def run_migrations(
             version_table_schema=schema,
             compare_type=True,
             compare_server_default=True,
+            render_item=_render_item,
         )
         with context.begin_transaction():
             context.run_migrations()

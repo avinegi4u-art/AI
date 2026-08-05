@@ -185,6 +185,69 @@ class RateLimiter:
         return decision
 
 
+class AttemptCounter:
+    """Fixed-window counter for bounded retry budgets, such as OTP verification.
+
+    Why Redis rather than a database column: the counter must survive the rollback of the
+    request that failed. A request-scoped database transaction is rolled back when the
+    handler raises, which would discard an incremented column and leave the retry budget
+    permanently at zero used — the exact bug this class exists to avoid.
+
+    Fails **closed**: if Redis is unavailable the budget is reported as exhausted. An
+    unbounded number of guesses against a six-digit code is a credential-stuffing hole,
+    so refusing logins is the safer failure mode here (unlike caching and rate limiting,
+    which fail open).
+    """
+
+    def __init__(
+        self, redis: Redis, *, namespace: str, limit: int, ttl_seconds: int
+    ) -> None:
+        if limit < 1:
+            raise ValueError("limit must be >= 1")
+        self._redis = redis
+        self._namespace = namespace
+        self._limit = limit
+        self._ttl = ttl_seconds
+
+    @property
+    def limit(self) -> int:
+        return self._limit
+
+    def _key(self, identity: str) -> str:
+        return cache_key("attempts", self._namespace, identity)
+
+    async def register_failure(self, identity: str) -> int:
+        """Record one failed attempt and return the running total."""
+        key = self._key(identity)
+        try:
+            async with self._redis.pipeline(transaction=True) as pipe:
+                pipe.incr(key)
+                pipe.expire(key, self._ttl)
+                count, _ = await pipe.execute()
+        except RedisError as exc:
+            logger.warning("attempt_counter_unavailable", namespace=self._namespace, error=str(exc))
+            return self._limit
+        return int(count)
+
+    async def is_exhausted(self, identity: str) -> bool:
+        """Return True when ``identity`` has used its whole budget."""
+        try:
+            raw = await self._redis.get(self._key(identity))
+        except RedisError as exc:
+            logger.warning("attempt_counter_unavailable", namespace=self._namespace, error=str(exc))
+            return True
+        return raw is not None and int(raw) >= self._limit
+
+    async def reset(self, identity: str) -> None:
+        """Clear the budget, e.g. after a successful verification."""
+        try:
+            await self._redis.delete(self._key(identity))
+        except RedisError as exc:
+            logger.warning(
+                "attempt_counter_reset_failed", namespace=self._namespace, error=str(exc)
+            )
+
+
 class IdempotencyStore:
     """Stores responses for ``Idempotency-Key`` replay protection.
 

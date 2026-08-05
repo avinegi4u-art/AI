@@ -10,7 +10,9 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
+from typing import Any, cast
 
+from sqlalchemy import CursorResult, Result
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -22,6 +24,15 @@ from marsool_core.config import ServiceSettings
 from marsool_core.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def rowcount(result: Result[Any]) -> int:
+    """Return the number of rows affected by a DML statement.
+
+    ``Session.execute`` is typed as returning ``Result``, but DML always yields a
+    ``CursorResult``; this narrows the type in one place instead of at every call site.
+    """
+    return int(cast("CursorResult[Any]", result).rowcount or 0)
 
 
 def build_async_engine(settings: ServiceSettings) -> AsyncEngine:

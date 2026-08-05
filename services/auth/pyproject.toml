@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marsool-auth"
+version = "0.1.0"
+description = "Marsool auth service: OTP challenges, token issuance, refresh rotation."
+requires-python = ">=3.11"
+dependencies = ["marsool-core", "uvicorn[standard]>=0.30"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -24,6 +24,8 @@ select = [
     "ASYNC",# flake8-async
     "S",    # bandit (security)
     "T20",  # no print
+    "BLE",  # no bare/blind except
+    "PLC0415",  # imports must be at module top level
     "RUF",
 ]
 ignore = [
@@ -81,7 +83,9 @@ testpaths = [
     "services/catalog/tests",
     "api-gateway/tests",
 ]
-addopts = "-q --strict-markers --strict-config"
+# importlib import mode lets every service keep conventional test module names
+# (test_service.py, test_router.py) without cross-service basename collisions.
+addopts = "-q --strict-markers --strict-config --import-mode=importlib"
 markers = [
     "integration: exercises real Postgres/PostGIS/Redis dependencies",
     "contract: validates cross-service API/event contracts",

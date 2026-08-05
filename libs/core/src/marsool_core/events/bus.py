@@ -11,6 +11,8 @@ from collections import defaultdict
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Protocol, runtime_checkable
 
+import orjson
+
 from marsool_core.config import ServiceSettings
 from marsool_core.events.envelope import EventEnvelope
 from marsool_core.events.topics import Topic, topic_for
@@ -131,7 +133,8 @@ class KafkaEventBus:
         self._producer: object | None = None
 
     async def start(self) -> None:
-        from aiokafka import AIOKafkaProducer
+        # Lazy: aiokafka is an optional extra, needed only by the Kafka backend.
+        from aiokafka import AIOKafkaProducer  # noqa: PLC0415
 
         producer = AIOKafkaProducer(
             bootstrap_servers=self._bootstrap_servers,
@@ -152,7 +155,6 @@ class KafkaEventBus:
             logger.info("kafka_producer_stopped")
 
     async def publish(self, envelope: EventEnvelope) -> None:
-        import orjson
 
         if self._producer is None:
             raise RuntimeError("KafkaEventBus.start() must be awaited before publishing")

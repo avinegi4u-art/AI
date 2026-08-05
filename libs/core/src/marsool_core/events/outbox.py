@@ -19,7 +19,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from marsool_core.db.base import Base
+from marsool_core.db.session import rowcount
 from marsool_core.db.types import StringEnum
 from marsool_core.events.bus import EventBus
 from marsool_core.events.envelope import EventEnvelope
@@ -36,14 +36,17 @@ class OutboxStatus(StrEnum):
     DEAD_LETTERED = "DEAD_LETTERED"
 
 
-def build_outbox_model(base: type[Base], *, table_name: str = "event_outbox") -> type[Any]:
+def build_outbox_model(base: type[Any], *, table_name: str = "event_outbox") -> type[Any]:
     """Create an outbox ORM model bound to a service's declarative base.
+
+    ``base`` is the service's own ``DeclarativeBase`` subclass (each is bound to a
+    different schema), so it cannot be typed more precisely than ``type[Any]``.
 
     Each service gets its own outbox table inside its own schema, so the relay only
     ever touches tables that service owns.
     """
 
-    class EventOutbox(base):  # type: ignore[misc, valid-type]
+    class EventOutbox(base):
         """Durable queue of domain events awaiting publication."""
 
         __tablename__ = table_name
@@ -158,7 +161,7 @@ class OutboxRelay:
             for row in rows:
                 try:
                     await self._event_bus.publish(row.to_envelope())
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001 - relay must survive one bad event
                     row.attempts += 1
                     row.last_error = f"{type(exc).__name__}: {exc}"
                     if row.attempts >= MAX_PUBLISH_ATTEMPTS:
@@ -215,4 +218,4 @@ class OutboxRelay:
                 .values(status=OutboxStatus.PENDING, attempts=0, last_error=None)
             )
             await session.commit()
-            return int(result.rowcount or 0)
+            return rowcount(result)

@@ -11,6 +11,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 
 from fastapi import APIRouter, Response, status
+from sqlalchemy import text
 
 from marsool_core.config import ServiceSettings
 from marsool_core.http.schemas import HealthStatus
@@ -50,7 +51,7 @@ def build_health_router(
                 reason = await asyncio.wait_for(check(), timeout=_CHECK_TIMEOUT_SECONDS)
             except TimeoutError:
                 return name, "timeout"
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 - a probe must never raise
                 return name, f"error: {type(exc).__name__}"
             return name, reason or "ok"
 
@@ -93,8 +94,6 @@ def database_readiness_check(engine_provider: Callable[[], object]) -> Readiness
     """Build a readiness check that issues ``SELECT 1`` against the service database."""
 
     async def _check() -> str | None:
-        from sqlalchemy import text
-
         engine = engine_provider()
         async with engine.connect() as connection:  # type: ignore[attr-defined]
             await connection.execute(text("SELECT 1"))

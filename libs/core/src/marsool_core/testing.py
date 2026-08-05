@@ -6,8 +6,10 @@ harness: identical settings overrides, identical schema lifecycle, identical aut
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import MetaData, text
@@ -17,6 +19,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import NullPool
 
 from marsool_core.ids import new_id
 from marsool_core.security.jwt import encode_access_token
@@ -51,8 +54,6 @@ def build_test_engine(dsn: str = TEST_DATABASE_DSN) -> AsyncEngine:
     ``NullPool`` avoids cross-event-loop connection reuse, which is the most common
     source of flaky "attached to a different loop" failures in async test suites.
     """
-    from sqlalchemy.pool import NullPool
-
     return create_async_engine(dsn, poolclass=NullPool, future=True)
 
 
@@ -65,17 +66,65 @@ async def temporary_schema(
     Tables are created from metadata rather than by running Alembic: it is much faster,
     and a dedicated migration test asserts that the migrations produce the same schema.
     """
+    await _create_schema(engine, metadata=metadata, schema=schema, create_postgis=create_postgis)
+    try:
+        yield
+    finally:
+        await _drop_schema(engine, schema=schema)
+
+
+async def _create_schema(
+    engine: AsyncEngine, *, metadata: MetaData, schema: str, create_postgis: bool
+) -> None:
     async with engine.begin() as connection:
         if create_postgis:
             await connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
         await connection.execute(text(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
         await connection.execute(text(f'CREATE SCHEMA "{schema}"'))
         await connection.run_sync(metadata.create_all)
-    try:
-        yield
-    finally:
-        async with engine.begin() as connection:
-            await connection.execute(text(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+
+async def _drop_schema(engine: AsyncEngine, *, schema: str) -> None:
+    async with engine.begin() as connection:
+        await connection.execute(text(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+
+
+def provision_schema(
+    *,
+    metadata: MetaData,
+    schema: str,
+    dsn: str = TEST_DATABASE_DSN,
+    create_postgis: bool = True,
+) -> None:
+    """Create a service's test schema from a synchronous context.
+
+    Session-scoped pytest fixtures cannot await against a function-scoped event loop, so
+    schema setup runs in its own short-lived loop with its own engine.
+    """
+
+    async def _run() -> None:
+        engine = build_test_engine(dsn)
+        try:
+            await _create_schema(
+                engine, metadata=metadata, schema=schema, create_postgis=create_postgis
+            )
+        finally:
+            await engine.dispose()
+
+    asyncio.run(_run())
+
+
+def drop_schema(*, schema: str, dsn: str = TEST_DATABASE_DSN) -> None:
+    """Drop a service's test schema from a synchronous context."""
+
+    async def _run() -> None:
+        engine = build_test_engine(dsn)
+        try:
+            await _drop_schema(engine, schema=schema)
+        finally:
+            await engine.dispose()
+
+    asyncio.run(_run())
 
 
 async def truncate_all(engine: AsyncEngine, *, metadata: MetaData) -> None:
@@ -87,6 +136,55 @@ async def truncate_all(engine: AsyncEngine, *, metadata: MetaData) -> None:
         return
     async with engine.begin() as connection:
         await connection.execute(text(f"TRUNCATE {table_names} RESTART IDENTITY CASCADE"))
+
+
+def migration_diffs(
+    *,
+    alembic_ini: Path,
+    metadata: MetaData,
+    schema: str,
+    dsn: str = TEST_DATABASE_DSN,
+) -> list[tuple[Any, ...]]:
+    """Upgrade a schema with Alembic and return its differences from ``metadata``.
+
+    An empty list means the migration chain produces exactly the schema the models
+    declare. This catches the classic failure where a model changes but no migration is
+    written: tests that build tables from metadata would still pass while every deployed
+    environment breaks.
+    """
+    from alembic import command  # noqa: PLC0415 - test-only import
+    from alembic.autogenerate import compare_metadata  # noqa: PLC0415
+    from alembic.config import Config  # noqa: PLC0415
+    from alembic.migration import MigrationContext  # noqa: PLC0415
+    from sqlalchemy import create_engine  # noqa: PLC0415
+
+    config = Config(str(alembic_ini))
+    config.set_main_option("script_location", str(alembic_ini.parent / "migrations"))
+    command.upgrade(config, "head")
+
+    sync_dsn = dsn.replace("+asyncpg", "+psycopg2")
+    engine = create_engine(sync_dsn)
+    try:
+        with engine.connect() as connection:
+            context = MigrationContext.configure(
+                connection,
+                opts={
+                    "include_schemas": True,
+                    "target_metadata": metadata,
+                    # Restrict the comparison to this service's schema; other services'
+                    # tables are legitimately absent from this metadata.
+                    "include_name": lambda name, type_, _parent: (
+                        name == schema if type_ == "schema" else True
+                    ),
+                    # Alembic's own bookkeeping table is not part of the domain model.
+                    "include_object": lambda _obj, name, type_, *_: not (
+                        type_ == "table" and name == "alembic_version"
+                    ),
+                },
+            )
+            return list(compare_metadata(context, metadata))
+    finally:
+        engine.dispose()
 
 
 def session_factory_for(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:

@@ -148,14 +148,19 @@ def setup_tracing(
     if not otlp_endpoint:
         return False
     try:
-        from opentelemetry import trace
-        from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+        # Lazy: the OpenTelemetry SDK is an optional extra, and services running
+        # without tracing must not need it installed.
+        from opentelemetry import trace  # noqa: PLC0415
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import (  # noqa: PLC0415
             OTLPSpanExporter,
         )
-        from opentelemetry.sdk.resources import Resource
-        from opentelemetry.sdk.trace import TracerProvider
-        from opentelemetry.sdk.trace.export import BatchSpanProcessor
-        from opentelemetry.sdk.trace.sampling import ParentBased, TraceIdRatioBased
+        from opentelemetry.sdk.resources import Resource  # noqa: PLC0415
+        from opentelemetry.sdk.trace import TracerProvider  # noqa: PLC0415
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor  # noqa: PLC0415
+        from opentelemetry.sdk.trace.sampling import (  # noqa: PLC0415
+            ParentBased,
+            TraceIdRatioBased,
+        )
     except ImportError:
         logger.info("tracing_skipped", reason="opentelemetry_sdk_not_installed")
         return False
