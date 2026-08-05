@@ -1,0 +1,1646 @@
+{
+  "components": {
+    "schemas": {
+      "BasketLineIssue": {
+        "description": "Why a basket line was rejected.",
+        "properties": {
+          "code": {
+            "description": "One of: item_not_found, item_not_in_merchant, item_unavailable, option_group_not_found, option_not_found, option_unavailable, too_few_options, too_many_options, required_group_missing",
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "line_index": {
+            "description": "Zero-based index of the offending line",
+            "title": "Line Index",
+            "type": "integer"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "line_index",
+          "item_id",
+          "code",
+          "message"
+        ],
+        "title": "BasketLineIssue",
+        "type": "object"
+      },
+      "BasketLineRequest": {
+        "description": "One line of a basket to validate and price.",
+        "properties": {
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 280,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quantity": {
+            "default": 1,
+            "description": "Number of units",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "selections": {
+            "items": {
+              "$ref": "#/components/schemas/BasketSelection"
+            },
+            "maxItems": 20,
+            "title": "Selections",
+            "type": "array"
+          }
+        },
+        "required": [
+          "item_id"
+        ],
+        "title": "BasketLineRequest",
+        "type": "object"
+      },
+      "BasketSelection": {
+        "description": "The options chosen for one basket line.",
+        "properties": {
+          "group_id": {
+            "title": "Group Id",
+            "type": "string"
+          },
+          "option_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Option Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "group_id",
+          "option_ids"
+        ],
+        "title": "BasketSelection",
+        "type": "object"
+      },
+      "BasketValidationRequest": {
+        "description": "A basket to validate against a merchant's catalogue.",
+        "examples": [
+          {
+            "lines": [
+              {
+                "item_id": "itm_01J9Z8XQF3K7M2P4R6T8V0W1Y3",
+                "notes": "No coriander",
+                "quantity": 2,
+                "selections": [
+                  {
+                    "group_id": "opg_01J9Z8XQF3K7M2P4R6T8V0W1Y4",
+                    "option_ids": [
+                      "opt_01J9Z8XQF3K7M2P4R6T8V0W1Y5"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/BasketLineRequest"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          }
+        },
+        "required": [
+          "lines"
+        ],
+        "title": "BasketValidationRequest",
+        "type": "object"
+      },
+      "BasketValidationResponse": {
+        "description": "The result of validating a basket.\n\n``valid`` is false when any line has an issue. Lines are reported independently so a\nclient can show every problem at once rather than one per round trip.",
+        "examples": [
+          {
+            "currency": "AED",
+            "issues": [],
+            "items_amount": "82.00",
+            "lines": [],
+            "merchant_id": "mch_01J9Z8XQF3K7M2P4R6T8V0W1Y3",
+            "valid": true
+          }
+        ],
+        "properties": {
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/BasketLineIssue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "items_amount": {
+            "description": "Sum of all validated line totals; zero when the basket is invalid",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Items Amount",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/PricedBasketLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "merchant_id": {
+            "title": "Merchant Id",
+            "type": "string"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "merchant_id",
+          "valid",
+          "currency",
+          "items_amount",
+          "lines",
+          "issues"
+        ],
+        "title": "BasketValidationResponse",
+        "type": "object"
+      },
+      "Error": {
+        "properties": {
+          "code": {
+            "description": "Stable machine-readable error identifier",
+            "title": "Code",
+            "type": "string"
+          },
+          "correlation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Echoes X-Correlation-Id for support and tracing",
+            "title": "Correlation Id"
+          },
+          "details": {
+            "additionalProperties": true,
+            "description": "Structured context",
+            "title": "Details",
+            "type": "object"
+          },
+          "field_errors": {
+            "items": {
+              "$ref": "#/components/schemas/ErrorDetail"
+            },
+            "title": "Field Errors",
+            "type": "array"
+          },
+          "message": {
+            "description": "Human-readable description",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "Error",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "description": "A single field-level validation problem.",
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Machine-readable validation code",
+            "title": "Code"
+          },
+          "field": {
+            "description": "Dotted path to the offending field, e.g. 'items.0.quantity'",
+            "title": "Field",
+            "type": "string"
+          },
+          "message": {
+            "description": "Human-readable explanation",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorEnvelope": {
+        "description": "The platform-wide error response body.\n\nExample:\n    ```json\n    {\n      \"error\": {\n        \"code\": \"merchant_closed\",\n        \"message\": \"Merchant is not accepting orders right now\",\n        \"details\": {\"opens_at\": \"11:00\"},\n        \"field_errors\": [],\n        \"correlation_id\": \"01J9Z...\"\n      }\n    }\n    ```",
+        "examples": [
+          {
+            "error": {
+              "code": "not_found",
+              "correlation_id": "01J9Z8XQF3K7M2P4R6T8V0W1Y3",
+              "details": {},
+              "field_errors": [],
+              "message": "Merchant not found"
+            }
+          }
+        ],
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorEnvelope",
+        "type": "object"
+      },
+      "HealthStatus": {
+        "description": "Health and readiness probe response.",
+        "properties": {
+          "checks": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Per-dependency status, e.g. {'database': 'ok'}",
+            "title": "Checks",
+            "type": "object"
+          },
+          "environment": {
+            "title": "Environment",
+            "type": "string"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "description": "'ok' or 'degraded'",
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "version",
+          "environment"
+        ],
+        "title": "HealthStatus",
+        "type": "object"
+      },
+      "ItemAvailabilityUpdate": {
+        "description": "Mark an item in or out of stock.",
+        "properties": {
+          "is_available": {
+            "title": "Is Available",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Recorded for operations follow-up",
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "is_available"
+        ],
+        "title": "ItemAvailabilityUpdate",
+        "type": "object"
+      },
+      "MenuCategoryResponse": {
+        "description": "A section of a menu.",
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MenuItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "items"
+        ],
+        "title": "MenuCategoryResponse",
+        "type": "object"
+      },
+      "MenuItemResponse": {
+        "description": "A sellable item with its configurable options.",
+        "examples": [
+          {
+            "calories": 720,
+            "currency": "AED",
+            "description": "Slow-cooked spiced rice with chicken",
+            "id": "itm_01J9Z8XQF3K7M2P4R6T8V0W1Y3",
+            "is_available": true,
+            "name": "Chicken Machboos",
+            "option_groups": [
+              {
+                "id": "opg_01J9Z8XQF3K7M2P4R6T8V0W1Y4",
+                "is_required": true,
+                "max_select": 1,
+                "min_select": 1,
+                "name": "Portion",
+                "options": [
+                  {
+                    "id": "opt_01J9Z8XQF3K7M2P4R6T8V0W1Y5",
+                    "is_available": true,
+                    "is_default": true,
+                    "name": "Regular",
+                    "price_delta": "0.00"
+                  }
+                ],
+                "selection_type": "SINGLE"
+              }
+            ],
+            "price": "38.00",
+            "spice_level": 1,
+            "tags": [
+              "halal",
+              "house_special"
+            ]
+          }
+        ],
+        "properties": {
+          "calories": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calories"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "is_available": {
+            "title": "Is Available",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "option_groups": {
+            "items": {
+              "$ref": "#/components/schemas/OptionGroupResponse"
+            },
+            "title": "Option Groups",
+            "type": "array"
+          },
+          "price": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Price",
+            "type": "string"
+          },
+          "spice_level": {
+            "title": "Spice Level",
+            "type": "integer"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price",
+          "currency",
+          "is_available",
+          "tags",
+          "spice_level"
+        ],
+        "title": "MenuItemResponse",
+        "type": "object"
+      },
+      "MenuItemUpdate": {
+        "description": "Partially update an item.",
+        "properties": {
+          "calories": {
+            "anyOf": [
+              {
+                "maximum": 20000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calories"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "is_available": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Available"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "maximum": 100000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "spice_level": {
+            "anyOf": [
+              {
+                "maximum": 3.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spice Level"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          }
+        },
+        "title": "MenuItemUpdate",
+        "type": "object"
+      },
+      "MenuResponse": {
+        "description": "A merchant's full menu, nested for a single client round trip.",
+        "properties": {
+          "available_item_count": {
+            "title": "Available Item Count",
+            "type": "integer"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/MenuCategoryResponse"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "item_count": {
+            "title": "Item Count",
+            "type": "integer"
+          },
+          "menu_id": {
+            "title": "Menu Id",
+            "type": "string"
+          },
+          "merchant_id": {
+            "title": "Merchant Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "merchant_id",
+          "menu_id",
+          "name",
+          "currency",
+          "categories",
+          "item_count",
+          "available_item_count"
+        ],
+        "title": "MenuResponse",
+        "type": "object"
+      },
+      "OptionGroupResponse": {
+        "description": "A set of choices attached to an item.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_required": {
+            "title": "Is Required",
+            "type": "boolean"
+          },
+          "max_select": {
+            "title": "Max Select",
+            "type": "integer"
+          },
+          "min_select": {
+            "title": "Min Select",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/OptionResponse"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "selection_type": {
+            "$ref": "#/components/schemas/SelectionType"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "selection_type",
+          "min_select",
+          "max_select",
+          "is_required",
+          "options"
+        ],
+        "title": "OptionGroupResponse",
+        "type": "object"
+      },
+      "OptionResponse": {
+        "description": "One choice within an option group.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_available": {
+            "title": "Is Available",
+            "type": "boolean"
+          },
+          "is_default": {
+            "title": "Is Default",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_delta": {
+            "description": "Signed price adjustment; negative for a smaller portion",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Price Delta",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price_delta",
+          "is_available",
+          "is_default"
+        ],
+        "title": "OptionResponse",
+        "type": "object"
+      },
+      "PricedBasketLine": {
+        "description": "A validated, priced basket line.",
+        "properties": {
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "line_index": {
+            "title": "Line Index",
+            "type": "integer"
+          },
+          "line_total": {
+            "description": "Unit price multiplied by quantity",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Line Total",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "selected_options": {
+            "items": {
+              "$ref": "#/components/schemas/PricedOption"
+            },
+            "title": "Selected Options",
+            "type": "array"
+          },
+          "unit_base_price": {
+            "description": "Item price before options",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Unit Base Price",
+            "type": "string"
+          },
+          "unit_options_price": {
+            "description": "Sum of selected option deltas per unit",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Unit Options Price",
+            "type": "string"
+          },
+          "unit_price": {
+            "description": "Base plus options, per unit",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Unit Price",
+            "type": "string"
+          }
+        },
+        "required": [
+          "line_index",
+          "item_id",
+          "name",
+          "quantity",
+          "unit_base_price",
+          "unit_options_price",
+          "unit_price",
+          "line_total"
+        ],
+        "title": "PricedBasketLine",
+        "type": "object"
+      },
+      "PricedOption": {
+        "description": "A selected option, with the price it contributed.",
+        "properties": {
+          "group_id": {
+            "title": "Group Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "option_id": {
+            "title": "Option Id",
+            "type": "string"
+          },
+          "price_delta": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Price Delta",
+            "type": "string"
+          }
+        },
+        "required": [
+          "option_id",
+          "group_id",
+          "name",
+          "price_delta"
+        ],
+        "title": "PricedOption",
+        "type": "object"
+      },
+      "SelectionType": {
+        "description": "How many options a customer may pick from a group.\n\nA single unified model covers both concepts the brief calls out separately: a\n``SINGLE`` group is a variant (size, crust), a ``MULTI`` group is a modifier set\n(extra toppings, sauces). Two near-identical tables would double the validation logic\nfor no gain.",
+        "enum": [
+          "SINGLE",
+          "MULTI"
+        ],
+        "title": "SelectionType",
+        "type": "string"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "description": "JWT access token",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "\nMenus, items and basket validation for the Marsool platform.\n\n`GET /merchants/{id}/menu` returns the whole nested menu in one round trip and is cached in\nRedis, invalidated on any item change so a sold-out item disappears immediately.\n\n`POST /merchants/{id}/basket/validate` is the authority on what a valid basket line is:\nwhich option groups are required, how many options each allows, and what the configured\nline costs. Order creation delegates here rather than reimplementing the rules, so the\norder service cannot accept a line the catalogue would reject.\n",
+    "title": "Marsool Catalog Service",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/catalog/items/{item_id}": {
+      "put": {
+        "description": "Partial update. Merchant staff may only edit their own merchants' items.",
+        "operationId": "update_item",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuItemUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuItemResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update an item",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/catalog/items/{item_id}/availability": {
+      "put": {
+        "description": "The most frequently used merchant operation during service. Invalidates the cached menu so customers stop seeing the item immediately.",
+        "operationId": "set_item_availability",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemAvailabilityUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuItemResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Mark an item in or out of stock",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "summary": "Service health snapshot",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "live",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "summary": "Liveness probe (process is running)",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "ready",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "summary": "Readiness probe (dependencies reachable)",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/merchants/{merchant_id}/basket/validate": {
+      "post": {
+        "description": "Checks every line against the merchant's catalogue and returns the priced basket.\n\nValidation covers item existence and availability, that all items belong to the same merchant, that selected options exist in their group and are available, and that each group's selection count is within its bounds \u2014 including required groups the client omitted entirely.\n\nAll lines are checked independently and every issue is returned together, so a customer sees all problems at once. Order creation calls this before accepting a basket, which is why the rules live next to the data that defines them.",
+        "operationId": "validate_basket",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "merchant_id",
+            "required": true,
+            "schema": {
+              "title": "Merchant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BasketValidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasketValidationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Validate and price a basket",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/merchants/{merchant_id}/menu": {
+      "get": {
+        "description": "Returns the whole menu \u2014 categories, items and option groups \u2014 in one nested response, so a client needs a single round trip to render a storefront.\n\nCached in Redis. Any item change invalidates the entry, so a sold-out item disappears immediately rather than lingering until the TTL expires.",
+        "operationId": "get_merchant_menu",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "merchant_id",
+            "required": true,
+            "schema": {
+              "title": "Merchant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get a merchant's active menu",
+        "tags": [
+          "catalog"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Menus, items, option groups and basket validation.",
+      "name": "catalog"
+    },
+    {
+      "description": "Liveness and readiness probes.",
+      "name": "health"
+    }
+  ]
+}

@@ -1,0 +1,2333 @@
+{
+  "components": {
+    "schemas": {
+      "AcceptingOrdersUpdate": {
+        "description": "Toggle the merchant's own order kill switch.",
+        "properties": {
+          "accepting_orders": {
+            "title": "Accepting Orders",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Recorded for operations follow-up",
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "accepting_orders"
+        ],
+        "title": "AcceptingOrdersUpdate",
+        "type": "object"
+      },
+      "Error": {
+        "properties": {
+          "code": {
+            "description": "Stable machine-readable error identifier",
+            "title": "Code",
+            "type": "string"
+          },
+          "correlation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Echoes X-Correlation-Id for support and tracing",
+            "title": "Correlation Id"
+          },
+          "details": {
+            "additionalProperties": true,
+            "description": "Structured context",
+            "title": "Details",
+            "type": "object"
+          },
+          "field_errors": {
+            "items": {
+              "$ref": "#/components/schemas/ErrorDetail"
+            },
+            "title": "Field Errors",
+            "type": "array"
+          },
+          "message": {
+            "description": "Human-readable description",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "Error",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "description": "A single field-level validation problem.",
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Machine-readable validation code",
+            "title": "Code"
+          },
+          "field": {
+            "description": "Dotted path to the offending field, e.g. 'items.0.quantity'",
+            "title": "Field",
+            "type": "string"
+          },
+          "message": {
+            "description": "Human-readable explanation",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorEnvelope": {
+        "description": "The platform-wide error response body.\n\nExample:\n    ```json\n    {\n      \"error\": {\n        \"code\": \"merchant_closed\",\n        \"message\": \"Merchant is not accepting orders right now\",\n        \"details\": {\"opens_at\": \"11:00\"},\n        \"field_errors\": [],\n        \"correlation_id\": \"01J9Z...\"\n      }\n    }\n    ```",
+        "examples": [
+          {
+            "error": {
+              "code": "not_found",
+              "correlation_id": "01J9Z8XQF3K7M2P4R6T8V0W1Y3",
+              "details": {},
+              "field_errors": [],
+              "message": "Merchant not found"
+            }
+          }
+        ],
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorEnvelope",
+        "type": "object"
+      },
+      "HealthStatus": {
+        "description": "Health and readiness probe response.",
+        "properties": {
+          "checks": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Per-dependency status, e.g. {'database': 'ok'}",
+            "title": "Checks",
+            "type": "object"
+          },
+          "environment": {
+            "title": "Environment",
+            "type": "string"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "description": "'ok' or 'degraded'",
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "version",
+          "environment"
+        ],
+        "title": "HealthStatus",
+        "type": "object"
+      },
+      "MerchantDetail": {
+        "description": "A merchant's full storefront, including this week's schedule.",
+        "examples": [
+          {
+            "accepting_orders": true,
+            "cuisines": [
+              "emirati",
+              "grills"
+            ],
+            "currency": "AED",
+            "distance_m": 1843.2,
+            "eta_min": 31,
+            "id": "mch_01J9Z8XQF3K7M2P4R6T8V0W1Y3",
+            "is_open_now": true,
+            "latitude": "24.481200",
+            "longitude": "54.365500",
+            "min_order_amount": "20.00",
+            "name": "Al Mrzab Restaurant",
+            "prep_time_minutes": 25,
+            "price_tier": 2,
+            "rating": "4.60",
+            "rating_count": 1284,
+            "slug": "al-mrzab-restaurant",
+            "vertical": "RESTAURANT"
+          }
+        ],
+        "properties": {
+          "accepting_orders": {
+            "title": "Accepting Orders",
+            "type": "boolean"
+          },
+          "address_line1": {
+            "title": "Address Line1",
+            "type": "string"
+          },
+          "address_line2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address Line2"
+          },
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "community": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Community"
+          },
+          "country_code": {
+            "title": "Country Code",
+            "type": "string"
+          },
+          "cuisines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cuisines",
+            "type": "array"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "delivery_radius_m": {
+            "title": "Delivery Radius M",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "distance_m": {
+            "description": "Straight-line distance from the search point, metres",
+            "title": "Distance M",
+            "type": "number"
+          },
+          "emirate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emirate"
+          },
+          "eta_min": {
+            "description": "Estimated minutes until delivery: preparation plus travel to the search point",
+            "title": "Eta Min",
+            "type": "integer"
+          },
+          "hero_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hero Image Url"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_open_now": {
+            "title": "Is Open Now",
+            "type": "boolean"
+          },
+          "latitude": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Latitude",
+            "type": "string"
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
+          },
+          "longitude": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Longitude",
+            "type": "string"
+          },
+          "min_order_amount": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Min Order Amount",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "opening_hours": {
+            "items": {
+              "$ref": "#/components/schemas/OpeningHours"
+            },
+            "title": "Opening Hours",
+            "type": "array"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "prep_time_minutes": {
+            "title": "Prep Time Minutes",
+            "type": "integer"
+          },
+          "price_tier": {
+            "description": "1 = budget through 4 = premium",
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Price Tier",
+            "type": "integer"
+          },
+          "rating": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Rating",
+            "type": "string"
+          },
+          "rating_count": {
+            "title": "Rating Count",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MerchantStatus"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "vertical": {
+            "$ref": "#/components/schemas/MerchantVertical"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "vertical",
+          "cuisines",
+          "city",
+          "latitude",
+          "longitude",
+          "rating",
+          "rating_count",
+          "price_tier",
+          "prep_time_minutes",
+          "currency",
+          "min_order_amount",
+          "accepting_orders",
+          "distance_m",
+          "is_open_now",
+          "eta_min",
+          "status",
+          "address_line1",
+          "country_code",
+          "timezone",
+          "delivery_radius_m"
+        ],
+        "title": "MerchantDetail",
+        "type": "object"
+      },
+      "MerchantStatus": {
+        "description": "Lifecycle state, controlled by operations rather than by the merchant.\n\nOnly ``ACTIVE`` merchants appear in customer search.",
+        "enum": [
+          "DRAFT",
+          "ACTIVE",
+          "PAUSED",
+          "SUSPENDED"
+        ],
+        "title": "MerchantStatus",
+        "type": "string"
+      },
+      "MerchantSummary": {
+        "description": "A merchant as it appears in search results.",
+        "examples": [
+          {
+            "accepting_orders": true,
+            "cuisines": [
+              "emirati",
+              "grills"
+            ],
+            "currency": "AED",
+            "distance_m": 1843.2,
+            "eta_min": 31,
+            "id": "mch_01J9Z8XQF3K7M2P4R6T8V0W1Y3",
+            "is_open_now": true,
+            "latitude": "24.481200",
+            "longitude": "54.365500",
+            "min_order_amount": "20.00",
+            "name": "Al Mrzab Restaurant",
+            "prep_time_minutes": 25,
+            "price_tier": 2,
+            "rating": "4.60",
+            "rating_count": 1284,
+            "slug": "al-mrzab-restaurant",
+            "vertical": "RESTAURANT"
+          }
+        ],
+        "properties": {
+          "accepting_orders": {
+            "title": "Accepting Orders",
+            "type": "boolean"
+          },
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "community": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Community"
+          },
+          "cuisines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cuisines",
+            "type": "array"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "distance_m": {
+            "description": "Straight-line distance from the search point, metres",
+            "title": "Distance M",
+            "type": "number"
+          },
+          "eta_min": {
+            "description": "Estimated minutes until delivery: preparation plus travel to the search point",
+            "title": "Eta Min",
+            "type": "integer"
+          },
+          "hero_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hero Image Url"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_open_now": {
+            "title": "Is Open Now",
+            "type": "boolean"
+          },
+          "latitude": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Latitude",
+            "type": "string"
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
+          },
+          "longitude": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Longitude",
+            "type": "string"
+          },
+          "min_order_amount": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Min Order Amount",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "prep_time_minutes": {
+            "title": "Prep Time Minutes",
+            "type": "integer"
+          },
+          "price_tier": {
+            "description": "1 = budget through 4 = premium",
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Price Tier",
+            "type": "integer"
+          },
+          "rating": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Rating",
+            "type": "string"
+          },
+          "rating_count": {
+            "title": "Rating Count",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "vertical": {
+            "$ref": "#/components/schemas/MerchantVertical"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "vertical",
+          "cuisines",
+          "city",
+          "latitude",
+          "longitude",
+          "rating",
+          "rating_count",
+          "price_tier",
+          "prep_time_minutes",
+          "currency",
+          "min_order_amount",
+          "accepting_orders",
+          "distance_m",
+          "is_open_now",
+          "eta_min"
+        ],
+        "title": "MerchantSummary",
+        "type": "object"
+      },
+      "MerchantUpdate": {
+        "description": "Partially update a merchant storefront.\n\nCommission, status and rating are absent by design: they are operations- and\noutcome-owned, and a merchant must not be able to change its own economics.",
+        "properties": {
+          "address_line1": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 3,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address Line1"
+          },
+          "address_line2": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address Line2"
+          },
+          "community": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Community"
+          },
+          "cuisines": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cuisines"
+          },
+          "delivery_radius_m": {
+            "anyOf": [
+              {
+                "maximum": 50000.0,
+                "minimum": 100.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Radius M"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "hero_image_url": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hero Image Url"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "maximum": 90.0,
+                    "minimum": -90.0,
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  }
+                ],
+                "description": "WGS84 latitude"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "maximum": 180.0,
+                    "minimum": -180.0,
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  }
+                ],
+                "description": "WGS84 longitude"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "min_order_amount": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Order Amount"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "prep_time_minutes": {
+            "anyOf": [
+              {
+                "maximum": 180.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prep Time Minutes"
+          }
+        },
+        "title": "MerchantUpdate",
+        "type": "object"
+      },
+      "MerchantVertical": {
+        "description": "Product vertical. The MVP launches with restaurants only.",
+        "enum": [
+          "RESTAURANT",
+          "GROCERY",
+          "PHARMACY",
+          "CONVENIENCE"
+        ],
+        "title": "MerchantVertical",
+        "type": "string"
+      },
+      "OpeningHours": {
+        "description": "One opening window on one weekday.",
+        "properties": {
+          "closes_at": {
+            "format": "time",
+            "title": "Closes At",
+            "type": "string"
+          },
+          "day_of_week": {
+            "description": "0 = Monday through 6 = Sunday",
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Day Of Week",
+            "type": "integer"
+          },
+          "opens_at": {
+            "format": "time",
+            "title": "Opens At",
+            "type": "string"
+          },
+          "spans_midnight": {
+            "default": false,
+            "description": "True when the window runs past midnight into the following day",
+            "title": "Spans Midnight",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "day_of_week",
+          "opens_at",
+          "closes_at"
+        ],
+        "title": "OpeningHours",
+        "type": "object"
+      },
+      "OpeningHoursUpdate": {
+        "description": "Replace a merchant's full weekly schedule.\n\nA whole-schedule replacement rather than per-window edits: partial edits make it easy\nto leave a stale window behind, and an incorrect open window means orders a kitchen\ncannot fulfil.",
+        "properties": {
+          "windows": {
+            "description": "At most 6 windows per day",
+            "items": {
+              "$ref": "#/components/schemas/OpeningHours"
+            },
+            "maxItems": 42,
+            "title": "Windows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "windows"
+        ],
+        "title": "OpeningHoursUpdate",
+        "type": "object"
+      },
+      "PageMeta": {
+        "description": "Cursor pagination metadata.\n\nCursor-based rather than offset-based: offsets drift when rows are inserted\nconcurrently, and ``OFFSET n`` degrades linearly on large tables.",
+        "properties": {
+          "has_more": {
+            "description": "Whether more items exist after this page",
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Maximum number of items requested",
+            "title": "Limit",
+            "type": "integer"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Opaque cursor for the next page; null when exhausted",
+            "title": "Next Cursor"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total matching items, when cheap to compute",
+            "title": "Total"
+          }
+        },
+        "required": [
+          "limit",
+          "has_more"
+        ],
+        "title": "PageMeta",
+        "type": "object"
+      },
+      "Page_MerchantSummary_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MerchantSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          }
+        },
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "Page[MerchantSummary]",
+        "type": "object"
+      },
+      "ServiceabilityResponse": {
+        "description": "Whether a merchant delivers to a given point.",
+        "properties": {
+          "deliverable": {
+            "title": "Deliverable",
+            "type": "boolean"
+          },
+          "distance_m": {
+            "title": "Distance M",
+            "type": "number"
+          },
+          "latitude": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Latitude",
+            "type": "string"
+          },
+          "longitude": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Longitude",
+            "type": "string"
+          },
+          "merchant_id": {
+            "title": "Merchant Id",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why delivery is unavailable, when it is not",
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "merchant_id",
+          "latitude",
+          "longitude",
+          "deliverable",
+          "distance_m"
+        ],
+        "title": "ServiceabilityResponse",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "description": "JWT access token",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "\nMerchant discovery and storefront management for the Marsool platform.\n\n`GET /merchants` answers the first question a customer asks \u2014 \"what can I order from right\nnow?\" \u2014 and does it in one indexed PostGIS query:\n\n- **Proximity**: `ST_DWithin` against a GiST-indexed `geography` column, ranked by distance.\n- **Coverage**: the customer's point must fall inside one of the merchant's service-area\n  polygons, or within its delivery radius when it has none. Real coverage is not a circle.\n- **Open now**: opening windows are stored as local wall-clock times and compared in the\n  merchant's own timezone, including windows that run past midnight.\n\n`GET /merchants/{id}/serviceability` is the pre-checkout gate used by order creation.\n",
+    "title": "Marsool Merchant Service",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "summary": "Service health snapshot",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "live",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "summary": "Liveness probe (process is running)",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "ready",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "summary": "Readiness probe (dependencies reachable)",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/merchants": {
+      "get": {
+        "description": "Returns merchants able to deliver to the given point, nearest first.\n\nA merchant is included when it is `ACTIVE`, within `radius_m`, and the point falls inside one of its service-area polygons \u2014 or within its delivery radius if it has no polygons. `open_now` additionally requires the merchant to be accepting orders and inside an opening window evaluated in the merchant's own timezone, including windows that run past midnight.\n\nResults are cursor-paginated by distance; pass `meta.next_cursor` back as `cursor`.",
+        "operationId": "search_merchants",
+        "parameters": [
+          {
+            "description": "Customer latitude (WGS84)",
+            "in": "query",
+            "name": "lat",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "description": "Customer latitude (WGS84)",
+              "title": "Lat"
+            }
+          },
+          {
+            "description": "Customer longitude (WGS84)",
+            "in": "query",
+            "name": "lng",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "description": "Customer longitude (WGS84)",
+              "title": "Lng"
+            }
+          },
+          {
+            "description": "Search radius in metres",
+            "in": "query",
+            "name": "radius_m",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100000,
+                  "minimum": 100,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search radius in metres",
+              "title": "Radius M"
+            }
+          },
+          {
+            "description": "Repeatable; matches any of the given cuisines",
+            "in": "query",
+            "name": "cuisine",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Repeatable; matches any of the given cuisines",
+              "title": "Cuisine"
+            }
+          },
+          {
+            "description": "e.g. RESTAURANT",
+            "in": "query",
+            "name": "vertical",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "e.g. RESTAURANT",
+              "title": "Vertical"
+            }
+          },
+          {
+            "description": "Name search",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Name search",
+              "title": "Q"
+            }
+          },
+          {
+            "description": "Filter by current open state",
+            "in": "query",
+            "name": "open_now",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by current open state",
+              "title": "Open Now"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor from a previous page",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor from a previous page",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_MerchantSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Find merchants that deliver to a location",
+        "tags": [
+          "merchants"
+        ]
+      }
+    },
+    "/merchants/{merchant_id}": {
+      "get": {
+        "description": "Returns the storefront and this week's schedule. Supply `lat` and `lng` to get a meaningful `distance_m` and `eta_min` for the requesting customer.",
+        "operationId": "get_merchant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "merchant_id",
+            "required": true,
+            "schema": {
+              "title": "Merchant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lat",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lat"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lng",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lng"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MerchantDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get a merchant storefront",
+        "tags": [
+          "merchants"
+        ]
+      },
+      "put": {
+        "description": "Partial update. Commission, lifecycle status and rating are not settable: they are operations- and outcome-owned, so a merchant cannot change its own economics. Merchant staff may only edit merchants they are attached to.",
+        "operationId": "update_merchant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "merchant_id",
+            "required": true,
+            "schema": {
+              "title": "Merchant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MerchantUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MerchantDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update a merchant storefront",
+        "tags": [
+          "merchants"
+        ]
+      }
+    },
+    "/merchants/{merchant_id}/accepting-orders": {
+      "put": {
+        "description": "The merchant's own kill switch, independent of the operations-owned `status`. A kitchen that is overwhelmed pauses here without its storefront being deactivated.",
+        "operationId": "set_accepting_orders",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "merchant_id",
+            "required": true,
+            "schema": {
+              "title": "Merchant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptingOrdersUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MerchantDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Start or stop accepting orders",
+        "tags": [
+          "merchants"
+        ]
+      }
+    },
+    "/merchants/{merchant_id}/hours": {
+      "get": {
+        "operationId": "get_merchant_hours",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "merchant_id",
+            "required": true,
+            "schema": {
+              "title": "Merchant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OpeningHours"
+                  },
+                  "title": "Response Get Merchant Hours",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get a merchant's weekly schedule",
+        "tags": [
+          "merchants"
+        ]
+      },
+      "put": {
+        "description": "Replaces the whole schedule rather than editing individual windows: partial edits make it easy to leave a stale window behind, and a wrong open window means orders the kitchen cannot fulfil. Merchant staff may only edit their own merchants.",
+        "operationId": "replace_merchant_hours",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "merchant_id",
+            "required": true,
+            "schema": {
+              "title": "Merchant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpeningHoursUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OpeningHours"
+                  },
+                  "title": "Response Replace Merchant Hours",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Replace a merchant's weekly schedule",
+        "tags": [
+          "merchants"
+        ]
+      }
+    },
+    "/merchants/{merchant_id}/serviceability": {
+      "get": {
+        "description": "Used by order creation before a basket is accepted, so a customer learns about an out-of-range address or a closed kitchen at checkout rather than after paying. `reason` explains a negative result: `merchant_not_accepting_orders`, `outside_delivery_area` or `merchant_closed`.",
+        "operationId": "check_serviceability",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "merchant_id",
+            "required": true,
+            "schema": {
+              "title": "Merchant Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Customer latitude (WGS84)",
+            "in": "query",
+            "name": "lat",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "description": "Customer latitude (WGS84)",
+              "title": "Lat"
+            }
+          },
+          {
+            "description": "Customer longitude (WGS84)",
+            "in": "query",
+            "name": "lng",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "description": "Customer longitude (WGS84)",
+              "title": "Lng"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceabilityResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller lacks permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unexpected internal error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Check whether a merchant delivers to a point",
+        "tags": [
+          "merchants"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Geospatial discovery, storefronts, opening hours and serviceability.",
+      "name": "merchants"
+    },
+    {
+      "description": "Liveness and readiness probes.",
+      "name": "health"
+    }
+  ]
+}

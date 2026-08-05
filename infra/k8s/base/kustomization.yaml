@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: marsool
+
+commonLabels:
+  app.kubernetes.io/part-of: marsool
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - migrate-job.yaml
+  - auth.yaml
+  - user.yaml
+  - merchant.yaml
+  - catalog.yaml
+  - gateway.yaml
+  - hpa.yaml
+
+# secret.example.yaml is documentation, not a resource: real values arrive from the cluster's
+# secrets manager via the External Secrets Operator.

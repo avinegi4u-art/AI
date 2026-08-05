@@ -30,5 +30,4 @@ out/
 .vscode/
 
 # Generated artifacts
-docs/openapi/*.json
-!docs/openapi/.gitkeep
+# OpenAPI documents are generated but committed, so contract changes show up in review.

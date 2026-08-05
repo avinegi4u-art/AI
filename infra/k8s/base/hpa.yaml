@@ -1,0 +1,60 @@
+# Autoscaling for the two request-path components that see customer traffic. The others scale
+# with them but are less load-sensitive, so they stay at a fixed replica count until load
+# testing in Step 2 says otherwise.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: marsool-gateway
+  labels:
+    app.kubernetes.io/part-of: marsool
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: marsool-gateway
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 65
+  behavior:
+    scaleUp:
+      # Delivery demand arrives in sharp meal-time peaks, so scaling up is deliberately eager.
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+    scaleDown:
+      # Scaling down is slow: a premature scale-down during a lull between peaks costs more
+      # than the pods it saves.
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 60
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: marsool-merchant
+  labels:
+    app.kubernetes.io/part-of: marsool
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: marsool-merchant
+  minReplicas: 3
+  maxReplicas: 15
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

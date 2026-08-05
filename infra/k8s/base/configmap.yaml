@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: marsool-config
+  labels:
+    app.kubernetes.io/part-of: marsool
+data:
+  # Non-secret settings shared by every service. Secrets (JWT keys, database password)
+  # come from the secrets manager; see secret.example.yaml for the shape.
+  MARSOOL_ENVIRONMENT: "production"
+  MARSOOL_LOG_LEVEL: "INFO"
+  MARSOOL_LOG_FORMAT: "json"
+  MARSOOL_METRICS_ENABLED: "true"
+
+  MARSOOL_EVENT_BUS_BACKEND: "kafka"
+  MARSOOL_KAFKA_BOOTSTRAP_SERVERS: "kafka-bootstrap.marsool.svc.cluster.local:9092"
+
+  # RS256 in production: the auth service holds the private key, every verifier holds only
+  # the public key, so a compromised service cannot mint tokens.
+  MARSOOL_JWT_ALGORITHM: "RS256"
+  MARSOOL_JWT_ISSUER: "marsool.auth"
+  MARSOOL_JWT_AUDIENCE: "marsool.api"
+  MARSOOL_ACCESS_TOKEN_TTL_SECONDS: "900"
+  MARSOOL_REFRESH_TOKEN_TTL_SECONDS: "2592000"
+
+  MARSOOL_RATE_LIMIT_ENABLED: "true"
+  MARSOOL_RATE_LIMIT_REQUESTS: "120"
+  MARSOOL_RATE_LIMIT_WINDOW_SECONDS: "60"
+  MARSOOL_ANONYMOUS_RATE_LIMIT_REQUESTS: "60"
+
+  # Pool sizing is per pod. Total connections are pool_size x max_overflow x replicas, which
+  # has to stay under the database's connection limit — the usual way a scale-up takes down a
+  # database.
+  MARSOOL_DATABASE_POOL_SIZE: "10"
+  MARSOOL_DATABASE_MAX_OVERFLOW: "5"
+  MARSOOL_DATABASE_STATEMENT_TIMEOUT_MS: "10000"
+
+  MARSOOL_OTEL_TRACES_SAMPLE_RATIO: "0.1"
+  MARSOOL_OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.observability.svc.cluster.local:4318"
+
+  # Internal service addresses used by the gateway.
+  MARSOOL_AUTH_SERVICE_URL: "http://marsool-auth:8001"
+  MARSOOL_USER_SERVICE_URL: "http://marsool-user:8002"
+  MARSOOL_MERCHANT_SERVICE_URL: "http://marsool-merchant:8003"
+  MARSOOL_CATALOG_SERVICE_URL: "http://marsool-catalog:8004"

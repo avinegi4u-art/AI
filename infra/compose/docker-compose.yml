@@ -1,0 +1,212 @@
+# Local development stack.
+#
+#   docker compose -f infra/compose/docker-compose.yml up --build
+#
+# Brings up PostgreSQL with PostGIS, Redis, Kafka, MinIO, the four MVP services and the
+# gateway. Everything reachable through the gateway on http://localhost:8000.
+
+name: marsool
+
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    migrate:
+      condition: service_completed_successfully
+  environment: &service-environment
+    MARSOOL_ENVIRONMENT: local
+    MARSOOL_LOG_FORMAT: console
+    MARSOOL_LOG_LEVEL: INFO
+    MARSOOL_DATABASE_DSN: postgresql+asyncpg://marsool:marsool@postgres:5432/marsool
+    MARSOOL_REDIS_DSN: redis://redis:6379/0
+    # Local development uses the in-memory bus so the stack works without Kafka. Set to
+    # "kafka" to exercise real cross-service event flow.
+    MARSOOL_EVENT_BUS_BACKEND: memory
+    MARSOOL_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    # Local-only shared secret. Production uses RS256 with a private key held only by the
+    # auth service and public keys distributed to verifiers.
+    MARSOOL_JWT_SECRET: local-development-secret-change-me
+    MARSOOL_CORS_ALLOW_ORIGINS: http://localhost:3000
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: marsool
+      POSTGRES_PASSWORD: marsool
+      POSTGRES_DB: marsool
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marsool -d marsool"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  kafka:
+    image: bitnami/kafka:3.7
+    environment:
+      # KRaft mode: no ZooKeeper, which keeps the local stack to one container.
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/bitnami/kafka
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: marsool
+      MINIO_ROOT_PASSWORD: marsool-local-secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Runs every service's migrations once and exits. Services wait for it to complete, so
+  # none of them boots against a schema it does not expect.
+  migrate:
+    build:
+      context: ../..
+      dockerfile: infra/docker/migrate.Dockerfile
+    environment:
+      <<: *service-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  auth:
+    <<: *service-defaults
+    build:
+      context: ../..
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_PATH: services/auth
+        SERVICE_MODULE: marsool_auth.main:app
+        SERVICE_PORT: "8001"
+    environment:
+      <<: *service-environment
+      MARSOOL_PORT: "8001"
+    ports:
+      - "8001:8001"
+
+  user:
+    <<: *service-defaults
+    build:
+      context: ../..
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_PATH: services/user
+        SERVICE_MODULE: marsool_user.main:app
+        SERVICE_PORT: "8002"
+    environment:
+      <<: *service-environment
+      MARSOOL_PORT: "8002"
+    ports:
+      - "8002:8002"
+
+  merchant:
+    <<: *service-defaults
+    build:
+      context: ../..
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_PATH: services/merchant
+        SERVICE_MODULE: marsool_merchant.main:app
+        SERVICE_PORT: "8003"
+    environment:
+      <<: *service-environment
+      MARSOOL_PORT: "8003"
+    ports:
+      - "8003:8003"
+
+  catalog:
+    <<: *service-defaults
+    build:
+      context: ../..
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_PATH: services/catalog
+        SERVICE_MODULE: marsool_catalog.main:app
+        SERVICE_PORT: "8004"
+    environment:
+      <<: *service-environment
+      MARSOOL_PORT: "8004"
+    ports:
+      - "8004:8004"
+
+  gateway:
+    build:
+      context: ../..
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_PATH: api-gateway
+        SERVICE_MODULE: marsool_gateway.main:app
+        SERVICE_PORT: "8000"
+    restart: unless-stopped
+    environment:
+      <<: *service-environment
+      MARSOOL_PORT: "8000"
+      MARSOOL_AUTH_SERVICE_URL: http://auth:8001
+      MARSOOL_USER_SERVICE_URL: http://user:8002
+      MARSOOL_MERCHANT_SERVICE_URL: http://merchant:8003
+      MARSOOL_CATALOG_SERVICE_URL: http://catalog:8004
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      auth:
+        condition: service_started
+      user:
+        condition: service_started
+      merchant:
+        condition: service_started
+      catalog:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  redis-data:
+  kafka-data:
+  minio-data:

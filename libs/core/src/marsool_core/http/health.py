@@ -30,8 +30,14 @@ def build_health_router(
     *,
     readiness_checks: dict[str, ReadinessCheck] | None = None,
 ) -> APIRouter:
-    """Build the health router exposing ``/health``, ``/health/live``, ``/health/ready``."""
-    checks = readiness_checks or {}
+    """Build the health router exposing ``/health``, ``/health/live``, ``/health/ready``.
+
+    The passed dict is held by reference, not copied, so a service can register checks after
+    the app is built — which it must, because the checks need resources that only exist once
+    the lifespan has run. Note the explicit ``is not None``: ``readiness_checks or {}`` would
+    substitute a fresh dict for an empty one and silently discard every later registration.
+    """
+    checks = readiness_checks if readiness_checks is not None else {}
     router = APIRouter(tags=["health"])
 
     def _snapshot(status_value: str, results: dict[str, str]) -> HealthStatus:

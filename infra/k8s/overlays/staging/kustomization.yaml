@@ -1,0 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: marsool-staging
+nameSuffix: -staging
+
+resources:
+  - ../../base
+
+# Staging runs a single replica of everything: it exists to verify correctness and
+# deployability, not capacity.
+replicas:
+  - name: marsool-auth
+    count: 1
+  - name: marsool-user
+    count: 1
+  - name: marsool-merchant
+    count: 1
+  - name: marsool-catalog
+    count: 1
+  - name: marsool-gateway
+    count: 1
+
+patches:
+  - target:
+      kind: ConfigMap
+      name: marsool-config
+    patch: |
+      - op: replace
+        path: /data/MARSOOL_ENVIRONMENT
+        value: staging
+      - op: replace
+        path: /data/MARSOOL_LOG_LEVEL
+        value: DEBUG
+      - op: replace
+        path: /data/MARSOOL_OTEL_TRACES_SAMPLE_RATIO
+        value: "1.0"
+  - target:
+      kind: Ingress
+      name: marsool-gateway
+    patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: api.staging.marsool.ae
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: api.staging.marsool.ae

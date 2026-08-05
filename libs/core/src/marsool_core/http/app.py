@@ -108,7 +108,9 @@ def create_app(
         log_format=settings.log_format,
     )
     metrics = ServiceMetrics(settings.service_name)
-    checks = dict(readiness_checks or {})
+    # Shared by reference with the health router and the returned ServiceApp, so a service
+    # can register dependency checks after construction (they need lifespan resources).
+    checks: dict[str, ReadinessCheck] = dict(readiness_checks) if readiness_checks else {}
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -166,10 +168,9 @@ def create_app(
 
     install_exception_handlers(app, include_debug_detail=settings.is_debug)
 
+    # Platform routes are registered before service routers so that a service with a
+    # catch-all route (the gateway) cannot shadow health probes or the metrics endpoint.
     app.include_router(build_health_router(settings, readiness_checks=checks))
-    for router in routers or []:
-        app.include_router(router)
-
     if settings.metrics_enabled:
         app.add_route(
             "/metrics",
@@ -177,5 +178,8 @@ def create_app(
             methods=["GET"],
             include_in_schema=False,
         )
+
+    for router in routers or []:
+        app.include_router(router)
 
     return ServiceApp(app=app, settings=settings, metrics=metrics, readiness_checks=checks)

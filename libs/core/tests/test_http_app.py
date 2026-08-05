@@ -198,6 +198,23 @@ async def test_readiness_reports_failing_dependency(client: AsyncClient) -> None
     assert body["checks"] == {"always_ok": "ok", "always_bad": "unreachable"}
 
 
+async def test_readiness_checks_registered_after_construction_are_used() -> None:
+    # Services register their dependency checks after ``create_app`` returns, because the
+    # checks need resources that only exist once the lifespan has run. An earlier version
+    # dropped them: an empty dict is falsy, so the health router substituted a fresh one.
+    service = create_app(SETTINGS, title="t", description="d")
+    service.readiness_checks["late_dependency"] = _bad_check
+
+    async with AsyncClient(
+        transport=ASGITransport(app=service.app, raise_app_exceptions=False),
+        base_url="http://testserver",
+    ) as client:
+        response = await client.get("/health/ready")
+
+    assert response.status_code == 503
+    assert response.json()["checks"] == {"late_dependency": "unreachable"}
+
+
 async def test_metrics_endpoint_exposes_request_counters(client: AsyncClient) -> None:
     await client.get("/boom/conflict")
     body = (await client.get("/metrics")).text
