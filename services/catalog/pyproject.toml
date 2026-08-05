@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marsool-catalog"
+version = "0.1.0"
+description = "Marsool catalog service: menus, categories, items, option groups, basket validation."
+requires-python = ">=3.11"
+dependencies = ["marsool-core", "uvicorn[standard]>=0.30"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

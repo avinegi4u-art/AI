@@ -2,7 +2,7 @@
 
 Revision ID: 0001_merchant
 Revises:
-Create Date: 2026-08-05 05:11:51.030114
+Create Date: 2026-08-05 05:24:25.039090
 """
 
 from collections.abc import Sequence
@@ -48,7 +48,7 @@ def upgrade() -> None:
     sa.Column('vertical', sa.String(length=32), nullable=False),
     sa.Column('status', sa.String(length=32), nullable=False),
     sa.Column('accepting_orders', sa.Boolean(), nullable=False),
-    sa.Column('cuisines', sa.ARRAY(sa.String(length=40)), nullable=False),
+    sa.Column('cuisines', postgresql.ARRAY(sa.String(length=40)), nullable=False),
     sa.Column('phone', sa.String(length=20), nullable=True),
     sa.Column('email', sa.String(length=254), nullable=True),
     sa.Column('address_line1', sa.String(length=200), nullable=False),
