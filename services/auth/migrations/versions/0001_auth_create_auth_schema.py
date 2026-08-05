@@ -2,7 +2,7 @@
 
 Revision ID: 0001_auth
 Revises:
-Create Date: 2026-08-05 04:48:58.961568
+Create Date: 2026-08-05 05:04:35.050777
 """
 
 from collections.abc import Sequence

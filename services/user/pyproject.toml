@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marsool-user"
+version = "0.1.0"
+description = "Marsool user service: profiles, addresses, preferences, courier and merchant staff details."
+requires-python = ">=3.11"
+dependencies = ["marsool-core", "email-validator>=2.2", "uvicorn[standard]>=0.30"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
